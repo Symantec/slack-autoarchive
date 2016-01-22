@@ -52,6 +52,7 @@ def get_last_message_timestamp(channel_history, too_old_datetime):
 
 
 def get_inactive_channels(all_unarchived_channels, too_old_datetime):
+  print "Find inactive channels..."
   payload  = {'inclusive': 0, 'oldest': 0, 'count': 50}
   api_endpoint = 'channels.history'
   inactive_channels = []
@@ -82,6 +83,7 @@ def send_channel_message(channel_id, message):
 
 
 def archive_inactive_channels(channels):
+  print "Archive inactive channels..."
   api_endpoint = 'channels.archive'
   for channel in channels:
     if not DRY_RUN:
