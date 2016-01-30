@@ -15,6 +15,7 @@ DAYS_INACTIVE    = 60
 TOO_OLD_DATETIME = datetime.now() - timedelta(days=DAYS_INACTIVE)
 WHITELIST_CHANNELS = [r'acct.*', r'.*desk', r'.*engagement.*', r'alert.*']
 DRY_RUN = os.environ.get('DRY_RUN')
+ADMIN_CHANNEL = os.environ.get('ADMIN_CHANNEL')
 
 
 # api_endpoint is a string, and payload is a dict
@@ -90,6 +91,8 @@ def archive_inactive_channels(channels):
       message = "This channel has had no activity for %s days. It is being auto-archived." % DAYS_INACTIVE
       message += " If you feel this is a mistake you can <https://slack.com/archives/archived|unarchive this channel> to bring it back at any point."
       send_channel_message(channel['id'], message)
+      if ADMIN_CHANNEL:
+        send_channel_message(ADMIN_CHANNEL, "Archiving channel... %s" % channel['name'])
       payload = {'channel': channel['id']}
       slack_api_http_get(api_endpoint=api_endpoint, payload=payload)
     print "Archiving channel... %s" % channel['name']
