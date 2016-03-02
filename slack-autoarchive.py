@@ -13,7 +13,7 @@ import re
 SLACK_TOKEN      = os.environ.get('SLACK_TOKEN')
 DAYS_INACTIVE    = 60
 TOO_OLD_DATETIME = datetime.now() - timedelta(days=DAYS_INACTIVE)
-WHITELIST_CHANNELS = [r'acct.*', r'.*desk', r'.*engagement.*', r'alert.*']
+WHITELIST_CHANNELS = [r'acct.*', r'.*desk', r'.*engagement.*', r'alert.*', r'sanmateo']
 DRY_RUN = os.environ.get('DRY_RUN')
 ADMIN_CHANNEL = os.environ.get('ADMIN_CHANNEL')
 
