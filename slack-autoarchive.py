@@ -13,9 +13,9 @@ import re
 SLACK_TOKEN      = os.environ.get('SLACK_TOKEN')
 DAYS_INACTIVE    = 60
 TOO_OLD_DATETIME = datetime.now() - timedelta(days=DAYS_INACTIVE)
-WHITELIST_CHANNELS = [r'acct.*', r'.*desk', r'.*engagement.*', r'alert.*', r'sanmateo']
 DRY_RUN = os.environ.get('DRY_RUN')
 ADMIN_CHANNEL = os.environ.get('ADMIN_CHANNEL')
+WHITELIST_KEYWORDS = os.environ.get('WHITELIST_KEYWORDS')
 
 
 # api_endpoint is a string, and payload is a dict
@@ -70,9 +70,10 @@ def filter_out_whitelist_channels(inactive_channels):
     channels_to_archive = []
     for channel in inactive_channels:
       whitelisted = False
-      for p in WHITELIST_CHANNELS:
-        if re.match(p, channel['name']):
-          whitelisted = True
+      if WHITELIST_KEYWORDS
+        for kw in WHITELIST_KEYWORDS.split(","):
+          if kw in channel['name']:
+            whitelisted = True
       if not whitelisted:
         channels_to_archive.append(channel)
     return channels_to_archive
