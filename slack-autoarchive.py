@@ -70,7 +70,7 @@ def filter_out_whitelist_channels(inactive_channels):
     channels_to_archive = []
     for channel in inactive_channels:
       whitelisted = False
-      if WHITELIST_KEYWORDS
+      if WHITELIST_KEYWORDS:
         for kw in WHITELIST_KEYWORDS.split(","):
           if kw in channel['name']:
             whitelisted = True
