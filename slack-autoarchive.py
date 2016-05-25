@@ -2,20 +2,20 @@
 
 from datetime import timedelta, datetime
 import os
+import sys
 import requests
-import re
 
 #
 # This will archive inactive channels. The inactive period is in days as 'DAYS_INACTIVE'
 # You can put this in a cron job to run daily to do slack cleanup.
 #
 
-SLACK_TOKEN      = os.environ.get('SLACK_TOKEN')
+SLACK_TOKEN      = os.getenv('SLACK_TOKEN')
 DAYS_INACTIVE    = 60
 TOO_OLD_DATETIME = datetime.now() - timedelta(days=DAYS_INACTIVE)
-DRY_RUN = os.environ.get('DRY_RUN')
-ADMIN_CHANNEL = os.environ.get('ADMIN_CHANNEL')
-WHITELIST_KEYWORDS = os.environ.get('WHITELIST_KEYWORDS')
+DRY_RUN = os.getenv('DRY_RUN', 1)
+ADMIN_CHANNEL = os.getenv('ADMIN_CHANNEL')
+WHITELIST_KEYWORDS = os.getenv('WHITELIST_KEYWORDS')
 
 
 # api_endpoint is a string, and payload is a dict
@@ -58,6 +58,8 @@ def get_inactive_channels(all_unarchived_channels, too_old_datetime):
   api_endpoint = 'channels.history'
   inactive_channels = []
   for channel in all_unarchived_channels:
+    sys.stdout.write('.')
+    sys.stdout.flush()
     payload['channel'] = channel['id']
     channel_history = slack_api_http_get(api_endpoint=api_endpoint, payload=payload)
     last_message_datetime = get_last_message_timestamp(channel_history, datetime.fromtimestamp(float(channel['created'])))
@@ -96,9 +98,11 @@ def archive_inactive_channels(channels):
         send_channel_message(ADMIN_CHANNEL, "Archiving channel... %s" % channel['name'])
       payload = {'channel': channel['id']}
       slack_api_http_get(api_endpoint=api_endpoint, payload=payload)
+
     print "Archiving channel... %s" % channel['name']
 
-
+if DRY_RUN:
+  print "THIS IS A DRY RUN. NO CHANNELS ARE ACTUALLY ARCHIVED."
 all_unarchived_channels = get_all_channels()
 inactive_channels       = get_inactive_channels(all_unarchived_channels, TOO_OLD_DATETIME)
 channels_to_archive = filter_out_whitelist_channels(inactive_channels)
