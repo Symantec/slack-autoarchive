@@ -13,7 +13,7 @@ import requests
 SLACK_TOKEN      = os.getenv('SLACK_TOKEN')
 DAYS_INACTIVE    = 60
 TOO_OLD_DATETIME = datetime.now() - timedelta(days=DAYS_INACTIVE)
-DRY_RUN = os.getenv('DRY_RUN', 1)
+DRY_RUN = (os.getenv('DRY_RUN', "true") == "true")
 ADMIN_CHANNEL = os.getenv('ADMIN_CHANNEL')
 WHITELIST_KEYWORDS = os.getenv('WHITELIST_KEYWORDS')
 
