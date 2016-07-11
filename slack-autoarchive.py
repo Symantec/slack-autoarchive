@@ -99,6 +99,7 @@ def archive_inactive_channels(channels):
   print "Archive inactive channels..."
   api_endpoint = 'channels.archive'
   for channel in channels:
+    stdout_message = "Archiving channel... %s" % channel['name']
     if not DRY_RUN:
       channel_message = "This channel has had no activity for %s days. It is being auto-archived." % DAYS_INACTIVE
       channel_message += " If you feel this is a mistake you can <https://slack.com/archives/archived|unarchive this channel> to bring it back at any point."
@@ -106,7 +107,6 @@ def archive_inactive_channels(channels):
       if ADMIN_CHANNEL:
         send_channel_message(ADMIN_CHANNEL, "Archiving channel... %s" % channel['name'])
       payload        = {'channel': channel['id']}
-      stdout_message = "Archiving channel... %s" % channel['name']
       log_message    = str(datetime.now()) + ' ' + stdout_message
       slack_api_http_get(api_endpoint=api_endpoint, payload=payload)
       write_log_entry(AUDIT_LOG, log_message)
