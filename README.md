@@ -1,10 +1,21 @@
 #Autoarchive unused slack channels
 
-##How to use
+##Requirements
 
-- Install python-requests dependency ( pip install requests )
-- Set your slack token environment variable ( SLACK_TOKEN=somekey )
-- Run the script, python slack-autoarchive.py
+- python2.7/python3
+- Install requirements.txt ( pip install -r requirements.txt )
+- Slack API token (https://api.slack.com/docs/oauth-test-tokens)
+
+##Example Usages
+
+The `SLACK_TOKEN` must be exposed as a environment variable before running your script. By default, the script will do a `DRY_RUN`. To perform a non-dry run, specify `DRY_RUN=false` as an environment variable as well. See sample usages below.
+```
+# Run the script in dry run archive mode...This will output a list of channels that will be archived.
+SLACK_TOKEN=<TOKEN> python slack-autoarchive.py
+
+# Run the script in active archive mode...THIS WILL ARCHIVE CHANNELS!
+DRY_RUN=false SLACK_TOKEN=<TOKEN> python slack-autoarchive.py
+```
 
 ##What Channels Will Be Archived
 
