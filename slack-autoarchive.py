@@ -54,7 +54,7 @@ def get_last_message_timestamp(channel_history, too_old_datetime):
 
 
 def get_inactive_channels(all_unarchived_channels, too_old_datetime):
-  print "Find inactive channels..."
+  print("Find inactive channels...")
   payload  = {'inclusive': 0, 'oldest': 0, 'count': 50}
   api_endpoint = 'channels.history'
   inactive_channels = []
@@ -96,7 +96,7 @@ def write_log_entry(file_name, entry):
 
 
 def archive_inactive_channels(channels):
-  print "Archive inactive channels..."
+  print("Archive inactive channels...")
   api_endpoint = 'channels.archive'
   for channel in channels:
     stdout_message = "Archiving channel... %s" % channel['name']
@@ -111,10 +111,10 @@ def archive_inactive_channels(channels):
       slack_api_http_get(api_endpoint=api_endpoint, payload=payload)
       write_log_entry(AUDIT_LOG, log_message)
 
-    print stdout_message
+    print(stdout_message)
 
 if DRY_RUN:
-  print "THIS IS A DRY RUN. NO CHANNELS ARE ACTUALLY ARCHIVED."
+  print("THIS IS A DRY RUN. NO CHANNELS ARE ACTUALLY ARCHIVED.")
 all_unarchived_channels = get_all_channels()
 inactive_channels       = get_inactive_channels(all_unarchived_channels, TOO_OLD_DATETIME)
 channels_to_archive     = filter_out_whitelist_channels(inactive_channels)
