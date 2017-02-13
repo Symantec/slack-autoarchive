@@ -12,8 +12,8 @@ import sys
 
 ADMIN_CHANNEL      = os.getenv('ADMIN_CHANNEL')
 AUDIT_LOG          = 'audit.log'
-DAYS_INACTIVE      = 60 
-DRY_RUN            = (os.getenv('DRY_RUN', "true") == "true")
+DAYS_INACTIVE      = 60
+DRY_RUN            = (os.getenv('DRY_RUN', 'true') == 'true')
 SLACK_TOKEN        = os.getenv('SLACK_TOKEN')
 TOO_OLD_DATETIME   = datetime.now() - timedelta(days=DAYS_INACTIVE)
 WHITELIST_KEYWORDS = os.getenv('WHITELIST_KEYWORDS')
@@ -47,14 +47,15 @@ def get_all_channels():
 def get_last_message_timestamp(channel_history, too_old_datetime):
   last_message_datetime = too_old_datetime
   for message in channel_history['messages']:
-    if 'subtype' not in message or message['subtype'] == 'file_share' or message['subtype'] == 'file_comment':
-      last_message_datetime = datetime.fromtimestamp(float(message['ts']))
-      break
+    if 'subtype' in message and (message['subtype'] == 'channel_leave' or message['subtype'] == 'channel_join'):
+      continue
+    last_message_datetime = datetime.fromtimestamp(float(message['ts']))
+    break
   return last_message_datetime
 
 
 def get_inactive_channels(all_unarchived_channels, too_old_datetime):
-  print("Find inactive channels...")
+  print('Find inactive channels...')
   payload  = {'inclusive': 0, 'oldest': 0, 'count': 50}
   api_endpoint = 'channels.history'
   inactive_channels = []
@@ -65,8 +66,7 @@ def get_inactive_channels(all_unarchived_channels, too_old_datetime):
     channel_history = slack_api_http_get(api_endpoint=api_endpoint, payload=payload)
     last_message_datetime = get_last_message_timestamp(channel_history, datetime.fromtimestamp(float(channel['created'])))
     if last_message_datetime <= too_old_datetime:
-      if not (len(channel_history['messages']) > 30 and len(channel['members']) > 5):
-        inactive_channels.append(channel)
+      inactive_channels.append(channel)
   return inactive_channels
 
 
@@ -76,7 +76,7 @@ def filter_out_whitelist_channels(inactive_channels):
     for channel in inactive_channels:
       whitelisted = False
       if WHITELIST_KEYWORDS:
-        for kw in WHITELIST_KEYWORDS.split(","):
+        for kw in WHITELIST_KEYWORDS.split(','):
           if kw in channel['name']:
             whitelisted = True
       if not whitelisted:
@@ -96,16 +96,16 @@ def write_log_entry(file_name, entry):
 
 
 def archive_inactive_channels(channels):
-  print("Archive inactive channels...")
+  print('Archive inactive channels...')
   api_endpoint = 'channels.archive'
   for channel in channels:
-    stdout_message = "Archiving channel... %s" % channel['name']
+    stdout_message = 'Archiving channel... %s' % channel['name']
     if not DRY_RUN:
-      channel_message = "This channel has had no activity for %s days. It is being auto-archived." % DAYS_INACTIVE
-      channel_message += " If you feel this is a mistake you can <https://slack.com/archives/archived|unarchive this channel> to bring it back at any point."
+      channel_message = 'This channel has had no activity for %s days. It is being auto-archived.' % DAYS_INACTIVE
+      channel_message += ' If you feel this is a mistake you can <https://slack.com/archives/archived|unarchive this channel> to bring it back at any point.'
       send_channel_message(channel['id'], channel_message)
       if ADMIN_CHANNEL:
-        send_channel_message(ADMIN_CHANNEL, "Archiving channel... %s" % channel['name'])
+        send_channel_message(ADMIN_CHANNEL, 'Archiving channel... %s' % channel['name'])
       payload        = {'channel': channel['id']}
       log_message    = str(datetime.now()) + ' ' + stdout_message
       slack_api_http_get(api_endpoint=api_endpoint, payload=payload)
@@ -113,8 +113,9 @@ def archive_inactive_channels(channels):
 
     print(stdout_message)
 
+
 if DRY_RUN:
-  print("THIS IS A DRY RUN. NO CHANNELS ARE ACTUALLY ARCHIVED.")
+  print('THIS IS A DRY RUN. NO CHANNELS ARE ACTUALLY ARCHIVED.')
 all_unarchived_channels = get_all_channels()
 inactive_channels       = get_inactive_channels(all_unarchived_channels, TOO_OLD_DATETIME)
 channels_to_archive     = filter_out_whitelist_channels(inactive_channels)
