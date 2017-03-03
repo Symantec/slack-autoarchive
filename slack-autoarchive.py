@@ -13,7 +13,7 @@ import sys
 ADMIN_CHANNEL      = os.getenv('ADMIN_CHANNEL')
 AUDIT_LOG          = 'audit.log'
 DAYS_INACTIVE      = 60
-MIN_MEMBERS        = 5
+MIN_MEMBERS        = os.getenv('MIN_MEMBERS')
 DRY_RUN            = (os.getenv('DRY_RUN', 'true') == 'true')
 SLACK_TOKEN        = os.getenv('SLACK_TOKEN')
 TOO_OLD_DATETIME   = datetime.now() - timedelta(days=DAYS_INACTIVE)
@@ -84,8 +84,8 @@ def get_inactive_channels(all_unarchived_channels, too_old_datetime):
       (last_message_datetime, is_user) = get_last_message_timestamp(channel_history, datetime.fromtimestamp(float(channel['created'])))
       # mark inactive if last message is too old, but don't
       # if there have been bot messages and the channel has
-      # 5+ members
-      if last_message_datetime <= too_old_datetime and (not is_user or num_members < MIN_MEMBERS):
+      # at least the minimum number of members
+      if last_message_datetime <= too_old_datetime and (not is_user or (MIN_MEMBERS is not None and num_members < MIN_MEMBERS)):
         inactive_channels.append(channel)
   return inactive_channels
 
