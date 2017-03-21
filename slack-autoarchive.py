@@ -12,7 +12,7 @@ import sys
 
 ADMIN_CHANNEL      = os.getenv('ADMIN_CHANNEL')
 AUDIT_LOG          = 'audit.log'
-DAYS_INACTIVE      = 60
+DAYS_INACTIVE      = int(os.getenv('DAYS_INACTIVE', 60))
 MIN_MEMBERS        = os.getenv('MIN_MEMBERS')
 DRY_RUN            = (os.getenv('DRY_RUN', 'true') == 'true')
 SLACK_TOKEN        = os.getenv('SLACK_TOKEN')
@@ -100,7 +100,7 @@ def filter_out_whitelist_channels(inactive_channels):
 
     if WHITELIST_KEYWORDS:
       keywords.append(WHITELIST_KEYWORDS.split(','))
-    
+
     channels_to_archive = []
     for channel in inactive_channels:
       whitelisted = False
