@@ -51,7 +51,7 @@ def get_all_channels():
 def get_last_message_timestamp(channel_history, too_old_datetime):
   last_message_datetime = too_old_datetime
   last_bot_message_datetime = too_old_datetime
-  skip_subtypes = {'bot_message', 'channel_leave', 'channel_join' }
+  skip_subtypes = {'bot_message', 'channel_leave', 'channel_join'}
   for message in channel_history['messages']:
     if 'subtype' in message and message['subtype'] in skip_subtypes:
       last_bot_message_datetime = datetime.fromtimestamp(float(message['ts']))
@@ -71,7 +71,6 @@ def get_inactive_channels(all_unarchived_channels, too_old_datetime):
   payload  = {'inclusive': 0, 'oldest': 0, 'count': 50}
   api_endpoint = 'channels.history'
   inactive_channels = []
-  cnt = 0
   for channel in all_unarchived_channels:
     sys.stdout.write('.')
     sys.stdout.flush()
