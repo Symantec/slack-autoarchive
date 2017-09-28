@@ -4,6 +4,7 @@ from datetime import timedelta, datetime
 import os
 import requests
 import sys
+import time
 
 #
 # This will archive inactive channels. The inactive period is in days as 'DAYS_INACTIVE'
@@ -19,9 +20,12 @@ SLACK_TOKEN        = os.getenv('SLACK_TOKEN')
 TOO_OLD_DATETIME   = datetime.now() - timedelta(days=DAYS_INACTIVE)
 WHITELIST_KEYWORDS = os.getenv('WHITELIST_KEYWORDS')
 
+THROTTLE_REQUESTS = False
 
 # api_endpoint is a string, and payload is a dict
-def slack_api_http(api_endpoint=None, payload=None, method="GET"):
+def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
+  global THROTTLE_REQUESTS
+
   uri = 'https://slack.com/api/' + api_endpoint
   payload['token'] = SLACK_TOKEN
   try:
@@ -29,10 +33,24 @@ def slack_api_http(api_endpoint=None, payload=None, method="GET"):
       response = requests.post(uri, data=payload)
     else:
       response = requests.get(uri, params=payload)
+
+    # Force request to take at least 1 second. Slack docs state:
+    # > In general we allow applications that integrate with Slack to send
+    # > no more than one message per second. We allow bursts over that
+    # > limit for short periods.
+    if THROTTLE_REQUESTS:
+      time.sleep(1.0)
+
     if response.status_code == requests.codes.ok:
       return response.json()
+    elif retry and response.status_code == requests.codes.too_many_requests:
+      THROTTLE_REQUESTS=True
+      retry_timeout = 1.2 * float(response.headers['Retry-After'])
+      print('Rate-limited. Retrying after ' + str(retry_timeout) + 'ms')
+      time.sleep(retry_timeout)
+      return slack_api_http(api_endpoint, payload, method, False)
     else:
-      raise Exception(response.content)
+      raise response.raise_for_status()
   except Exception as e:
     raise Exception(e)
 
