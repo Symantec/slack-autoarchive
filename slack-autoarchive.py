@@ -22,6 +22,7 @@ WHITELIST_KEYWORDS = os.getenv('WHITELIST_KEYWORDS')
 
 THROTTLE_REQUESTS = False
 
+
 # api_endpoint is a string, and payload is a dict
 def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
   global THROTTLE_REQUESTS
@@ -44,7 +45,7 @@ def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
     if response.status_code == requests.codes.ok:
       return response.json()
     elif retry and response.status_code == requests.codes.too_many_requests:
-      THROTTLE_REQUESTS=True
+      THROTTLE_REQUESTS = True
       retry_timeout = 1.2 * float(response.headers['Retry-After'])
       print('Rate-limited. Retrying after ' + str(retry_timeout) + 'ms')
       time.sleep(retry_timeout)
