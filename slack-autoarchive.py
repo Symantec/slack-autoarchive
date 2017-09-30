@@ -71,6 +71,10 @@ def get_last_message_timestamp(channel_history, too_old_datetime):
   last_message_datetime = too_old_datetime
   last_bot_message_datetime = too_old_datetime
   skip_subtypes = {'bot_message', 'channel_leave', 'channel_join'}
+
+  if 'messages' not in channel_history:
+    return (last_message_datetime, False)  # no messages
+
   for message in channel_history['messages']:
     if 'subtype' in message and message['subtype'] in skip_subtypes:
       last_bot_message_datetime = datetime.fromtimestamp(float(message['ts']))
