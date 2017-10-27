@@ -30,6 +30,7 @@ SKIP_SUBTYPES      = {'channel_leave', 'channel_join'}  # 'bot_message'
 class NotAuthenticatedError(Exception):
   pass
 
+
 # api_endpoint is a string, and payload is a dict
 def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
   global THROTTLE_REQUESTS
@@ -49,7 +50,7 @@ def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
       time.sleep(1.0)
     if response.status_code == requests.codes.ok:
       data = response.json()
-      if data["ok"] == False and (data["error"] == "invalid_auth" or data["error"] == "not_authed"):
+      if data["ok"] is False and (data["error"] == "invalid_auth" or data["error"] == "not_authed"):
         raise NotAuthenticatedError("Failed to authenticate with given token")
       return data
     elif retry and response.status_code == requests.codes.too_many_requests:
