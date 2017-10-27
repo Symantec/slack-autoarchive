@@ -1,10 +1,12 @@
 #!/usr/local/bin/python
 
-from datetime import timedelta, datetime
+import logging
 import os
-import requests
 import sys
 import time
+from datetime import datetime, timedelta
+
+import requests
 
 #
 # This will archive inactive channels. The inactive period is in days as 'DAYS_INACTIVE'
@@ -25,6 +27,10 @@ THROTTLE_REQUESTS  = False
 SKIP_SUBTYPES      = {'channel_leave', 'channel_join'}  # 'bot_message'
 
 
+class NotAuthenticatedError(Exception):
+  pass
+
+
 # api_endpoint is a string, and payload is a dict
 def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
   global THROTTLE_REQUESTS
@@ -36,16 +42,17 @@ def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
       response = requests.post(uri, data=payload)
     else:
       response = requests.get(uri, params=payload)
-
     # Force request to take at least 1 second. Slack docs state:
     # > In general we allow applications that integrate with Slack to send
     # > no more than one message per second. We allow bursts over that
     # > limit for short periods.
     if THROTTLE_REQUESTS:
       time.sleep(1.0)
-
     if response.status_code == requests.codes.ok:
-      return response.json()
+      data = response.json()
+      if data["ok"] is False and (data["error"] == "invalid_auth" or data["error"] == "not_authed"):
+        raise NotAuthenticatedError("Failed to authenticate with given token")
+      return data
     elif retry and response.status_code == requests.codes.too_many_requests:
       THROTTLE_REQUESTS = True
       retry_timeout = 1.2 * float(response.headers['Retry-After'])
@@ -55,7 +62,7 @@ def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
     else:
       raise response.raise_for_status()
   except Exception as e:
-    raise Exception(e)
+    raise e
 
 
 # too_old_datetime is a datetime object
@@ -175,9 +182,17 @@ def archive_inactive_channels(channels):
     send_channel_message(ADMIN_CHANNEL, admin_msg)
 
 
-if DRY_RUN:
-  print('THIS IS A DRY RUN. NO CHANNELS ARE ACTUALLY ARCHIVED.')
-all_unarchived_channels = get_all_channels()
-non_exempt_channels     = filter_out_exempt_channels(all_unarchived_channels)
-channels_to_archive     = get_inactive_channels(non_exempt_channels, TOO_OLD_DATETIME)
-archive_inactive_channels(channels_to_archive)
+if __name__ == "__main__":
+  if SLACK_TOKEN is None:
+    logging.error("SLACK_TOKEN not set")
+    sys.exit(1)
+  if DRY_RUN:
+    print('THIS IS A DRY RUN. NO CHANNELS ARE ACTUALLY ARCHIVED.')
+  try:
+    all_unarchived_channels = get_all_channels()
+  except NotAuthenticatedError:
+    logging.error('Could not authenticate with Slack using provided token')
+  sys.exit(1)
+  non_exempt_channels     = filter_out_exempt_channels(all_unarchived_channels)
+  channels_to_archive     = get_inactive_channels(non_exempt_channels, TOO_OLD_DATETIME)
+  archive_inactive_channels(channels_to_archive)
