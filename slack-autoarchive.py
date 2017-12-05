@@ -37,10 +37,6 @@ def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
     else:
       response = requests.get(uri, params=payload)
 
-    if not response.json()['ok']:
-      print(response.json())
-      sys.exit(1)
-
     # Force request to take at least 1 second. Slack docs state:
     # > In general we allow applications that integrate with Slack to send
     # > no more than one message per second. We allow bursts over that
@@ -58,6 +54,7 @@ def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
       return slack_api_http(api_endpoint, payload, method, False)
     else:
       raise response.raise_for_status()
+
   except Exception as e:
     raise Exception(e)
 
