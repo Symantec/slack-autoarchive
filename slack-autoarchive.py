@@ -44,7 +44,7 @@ def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
     if THROTTLE_REQUESTS:
       time.sleep(1.0)
 
-    if response.status_code == requests.codes.ok:
+    if response.status_code == requests.codes.ok and response.json()['ok']:
       return response.json()
     elif retry and response.status_code == requests.codes.too_many_requests:
       THROTTLE_REQUESTS = True
@@ -53,7 +53,8 @@ def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
       time.sleep(retry_timeout)
       return slack_api_http(api_endpoint, payload, method, False)
     else:
-      raise response.raise_for_status()
+      print(response.json())
+      sys.exit(1)
 
   except Exception as e:
     raise Exception(e)
