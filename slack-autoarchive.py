@@ -16,7 +16,7 @@ AUDIT_LOG          = 'audit.log'
 DAYS_INACTIVE      = int(os.getenv('DAYS_INACTIVE', 60))
 # set MIN_MEMBERS and any channels larger than this in people
 # are exempt from archiving. 0 is no limit.
-MIN_MEMBERS        = os.getenv('MIN_MEMBERS', 0)
+MIN_MEMBERS        = int(os.getenv('MIN_MEMBERS', 0))
 DRY_RUN            = (os.getenv('DRY_RUN', 'true') == 'true')
 SLACK_TOKEN        = os.getenv('SLACK_TOKEN')
 TOO_OLD_DATETIME   = datetime.now() - timedelta(days=DAYS_INACTIVE)
@@ -111,7 +111,7 @@ def get_inactive_channels(all_unarchived_channels, too_old_datetime):
       # mark inactive if last message is too old, but don't
       # if there have been bot messages and the channel has
       # at least the minimum number of members
-      channel_not_too_big = (MIN_MEMBERS == 0 or MIN_MEMBERS < num_members)
+      channel_not_too_big = (MIN_MEMBERS == 0 or MIN_MEMBERS > num_members)
       if last_message_datetime <= too_old_datetime and channel_not_too_big:
         inactive_channels.append(channel)
   return inactive_channels
