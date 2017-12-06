@@ -101,7 +101,7 @@ def get_inactive_channels(all_unarchived_channels, too_old_datetime):
   for channel in all_unarchived_channels:
     sys.stdout.write('.')
     sys.stdout.flush()
-    num_members = channel['num_members']
+    num_members = int(channel['num_members'])
     if num_members == 0:
       inactive_channels.append(channel)
     else:
