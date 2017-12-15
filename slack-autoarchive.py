@@ -16,7 +16,7 @@ AUDIT_LOG          = 'audit.log'
 DAYS_INACTIVE      = int(os.getenv('DAYS_INACTIVE', 60))
 # set MIN_MEMBERS and any channels larger than this in people
 # are exempt from archiving. 0 is no limit.
-MIN_MEMBERS        = os.getenv('MIN_MEMBERS', 0)
+MIN_MEMBERS        = int(os.getenv('MIN_MEMBERS', 0))
 DRY_RUN            = (os.getenv('DRY_RUN', 'true') == 'true')
 SLACK_TOKEN        = os.getenv('SLACK_TOKEN')
 TOO_OLD_DATETIME   = datetime.now() - timedelta(days=DAYS_INACTIVE)
@@ -44,7 +44,7 @@ def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
     if THROTTLE_REQUESTS:
       time.sleep(1.0)
 
-    if response.status_code == requests.codes.ok:
+    if response.status_code == requests.codes.ok and response.json()['ok']:
       return response.json()
     elif retry and response.status_code == requests.codes.too_many_requests:
       THROTTLE_REQUESTS = True
@@ -53,7 +53,8 @@ def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
       time.sleep(retry_timeout)
       return slack_api_http(api_endpoint, payload, method, False)
     else:
-      raise response.raise_for_status()
+      print(response.json())
+      sys.exit(1)
 
   except Exception as e:
     raise Exception(e)
@@ -101,7 +102,7 @@ def get_inactive_channels(all_unarchived_channels, too_old_datetime):
   for channel in all_unarchived_channels:
     sys.stdout.write('.')
     sys.stdout.flush()
-    num_members = channel['num_members']
+    num_members = int(channel['num_members'])
     if num_members == 0:
       inactive_channels.append(channel)
     else:
@@ -111,7 +112,7 @@ def get_inactive_channels(all_unarchived_channels, too_old_datetime):
       # mark inactive if last message is too old, but don't
       # if there have been bot messages and the channel has
       # at least the minimum number of members
-      channel_not_too_big = (MIN_MEMBERS == 0 or MIN_MEMBERS < num_members)
+      channel_not_too_big = (MIN_MEMBERS == 0 or MIN_MEMBERS > num_members)
       if last_message_datetime <= too_old_datetime and channel_not_too_big:
         inactive_channels.append(channel)
   return inactive_channels
