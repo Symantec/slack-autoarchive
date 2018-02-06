@@ -177,7 +177,7 @@ for channel in get_all_channels():
   sys.stdout.flush()
 
   if not is_channel_whitelisted(channel, whitelist_keywords) \
-    and is_channel_disused(channel, TOO_OLD_DATETIME):
+      and is_channel_disused(channel, TOO_OLD_DATETIME):
     archived_channels.append(channel)
     archive_channel(channel)
 
