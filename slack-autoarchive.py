@@ -139,12 +139,12 @@ def send_channel_message(channel_id, message):
 
 def write_log_entry(file_name, entry):
   with open(file_name, 'a') as logfile:
-    logfile.write(entry + '\n')
+    logfile.write(decode(entry) + '\n')
 
 
 def archive_channel(channel):
   api_endpoint = 'channels.archive'
-  stdout_message = 'Archiving channel... %s' % channel['name']
+  stdout_message = 'Archiving channel... %s' % decode(channel['name'])
   print(stdout_message)
 
   if not DRY_RUN:
@@ -159,11 +159,18 @@ def archive_channel(channel):
 
 def send_admin_report(channels):
   if ADMIN_CHANNEL:
-    channel_names = ', '.join('#' + channel['name'] for channel in channels)
+    channel_names = ', '.join('#' + decode(channel['name']) for channel in channels)
     admin_msg = 'Archiving %d channels: %s' % (len(channels), channel_names)
     if DRY_RUN:
       admin_msg = '[DRY RUN] %s' % admin_msg
     send_channel_message(ADMIN_CHANNEL, admin_msg)
+
+
+def decode(text):
+  try:
+    text = unicode(text, 'utf-8')
+  except TypeError:
+    return text
 
 
 if DRY_RUN:

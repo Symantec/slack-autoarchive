@@ -29,3 +29,7 @@ A channel will be archived by this script is it doesn't meet any of the followin
 - *Don't panic! It can be unarchived from https://slack.com/archives/archived* However all previous members would be kicked out of the channel and not be automatically invited back.
 - A message will be dropped into the channel saying the channel is being auto archived because of low activity
 - You can always whitelist a channel if it indeed needs to be kept despite meeting the auto-archive criteria.
+
+## Known Issues
+
+- When piping or redirecting Python 2 output, the interpreter defaults to 8-bit/ASCII output. This will cause a crash if your channel names have unicode characters. A workaround is to set this environment variable `PYTHONIOENCODING=UTF-8` prior to executing Python.
