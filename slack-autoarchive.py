@@ -21,8 +21,10 @@ DRY_RUN            = (os.getenv('DRY_RUN', 'true') == 'true')
 SLACK_TOKEN        = os.getenv('SLACK_TOKEN')
 TOO_OLD_DATETIME   = datetime.now() - timedelta(days=DAYS_INACTIVE)
 WHITELIST_KEYWORDS = os.getenv('WHITELIST_KEYWORDS')
-THROTTLE_REQUESTS  = False
 SKIP_SUBTYPES      = {'channel_leave', 'channel_join'}  # 'bot_message'
+
+THROTTLE_REQUESTS  = 0
+ERROR_RETRY = 0
 
 
 def get_whitelist_keywords():
@@ -42,6 +44,7 @@ def get_whitelist_keywords():
 # api_endpoint is a string, and payload is a dict
 def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
   global THROTTLE_REQUESTS
+  global ERROR_RETRY
 
   uri = 'https://slack.com/api/' + api_endpoint
   payload['token'] = SLACK_TOKEN
@@ -55,21 +58,26 @@ def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
     # > In general we allow applications that integrate with Slack to send
     # > no more than one message per second. We allow bursts over that
     # > limit for short periods.
-    if THROTTLE_REQUESTS:
+    if THROTTLE_REQUESTS > 0:
+      THROTTLE_REQUESTS -= 1
       time.sleep(1.0)
 
     if response.status_code == requests.codes.ok and response.json()['ok']:
       return response.json()
     elif retry and response.status_code == requests.codes.too_many_requests:
-      THROTTLE_REQUESTS = True
-      retry_timeout = 1.2 * float(response.headers['Retry-After'])
+      THROTTLE_REQUESTS = 30
+      retry_timeout = 1.05 * float(response.headers['Retry-After'])
       print('Rate-limited. Retrying after ' + str(retry_timeout) + 'ms')
-      time.sleep(retry_timeout)
       return slack_api_http(api_endpoint, payload, method, False)
     else:
-      print(response.json())
-      sys.exit(1)
-
+      print('API Error Response: ' + api_endpoint)
+      if ERROR_RETRY == 0:
+        ERROR_RETRY = 3
+      elif ERROR_RETRY == 1:
+        sys.exit(1)
+      else:
+        ERROR_RETRY -= 1
+      return slack_api_http(api_endpoint, payload, method, False)
   except Exception as e:
     raise Exception(e)
 
