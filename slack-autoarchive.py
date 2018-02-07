@@ -5,6 +5,7 @@ import os
 import requests
 import sys
 import time
+import json
 
 #
 # This will archive inactive channels. The inactive period is in days as 'DAYS_INACTIVE'
@@ -39,6 +40,16 @@ def get_whitelist_keywords():
   if WHITELIST_KEYWORDS:
     keywords.append(WHITELIST_KEYWORDS.split(','))
   return keywords
+
+
+def get_channel_alerts():
+  alerts = {
+    'channel_template': 'This channel has had no activity for %s days. It is being auto-archived. If you feel this is a mistake you can <https://slack.com/archives/archived|unarchive this channel> to bring it back at any point.'
+  }
+  if os.path.isfile('messages.json'):
+    with open('messages.json') as f:
+      alerts = json.load(f)
+  return alerts
 
 
 # api_endpoint is a string, and payload is a dict
@@ -150,14 +161,13 @@ def write_log_entry(file_name, entry):
     logfile.write(decode(entry) + '\n')
 
 
-def archive_channel(channel):
+def archive_channel(channel, alert):
   api_endpoint = 'channels.archive'
   stdout_message = 'Archiving channel... %s' % decode(channel['name'])
   print(stdout_message)
 
   if not DRY_RUN:
-    channel_message = 'This channel has had no activity for %s days. It is being auto-archived.' % DAYS_INACTIVE
-    channel_message += ' If you feel this is a mistake you can <https://slack.com/archives/archived|unarchive this channel> to bring it back at any point.'
+    channel_message = alert % DAYS_INACTIVE
     send_channel_message(channel['id'], channel_message)
     payload        = {'channel': channel['id']}
     log_message    = str(datetime.now()) + ' ' + stdout_message
@@ -185,6 +195,7 @@ if DRY_RUN:
   print('THIS IS A DRY RUN. NO CHANNELS ARE ACTUALLY ARCHIVED.')
 
 whitelist_keywords = get_whitelist_keywords()
+alert_templates = get_channel_alerts()
 archived_channels = []
 
 for channel in get_all_channels():
@@ -194,6 +205,6 @@ for channel in get_all_channels():
   if (not is_channel_whitelisted(channel, whitelist_keywords) and
     is_channel_disused(channel, TOO_OLD_DATETIME)):
     archived_channels.append(channel)
-    archive_channel(channel)
+    archive_channel(channel, alert_templates['channel_template'])
 
 send_admin_report(archived_channels)
