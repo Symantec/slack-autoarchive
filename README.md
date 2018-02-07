@@ -30,6 +30,14 @@ A channel will be archived by this script is it doesn't meet any of the followin
 - A message will be dropped into the channel saying the channel is being auto archived because of low activity
 - You can always whitelist a channel if it indeed needs to be kept despite meeting the auto-archive criteria.
 
+## Custom Archive Messages
+
+Just before a channel is archived, a message will be sent with information about the archive process. The default message is:
+
+  This channel has had no activity for %s days. It is being auto-archived. If you feel this is a mistake you can <https://slack.com/archives/archived|unarchive this channel> to bring it back at any point.'
+
+To provide a custom message, simply edit `messages.json`.
+
 ## Known Issues
 
 - When piping or redirecting Python 2 output, the interpreter defaults to 8-bit/ASCII output. This will cause a crash if your channel names have unicode characters. A workaround is to set this environment variable `PYTHONIOENCODING=UTF-8` prior to executing Python.
