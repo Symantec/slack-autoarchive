@@ -46,8 +46,8 @@ def get_channel_alerts():
   alerts = {
     'channel_template': 'This channel has had no activity for %s days. It is being auto-archived. If you feel this is a mistake you can <https://slack.com/archives/archived|unarchive this channel> to bring it back at any point.'
   }
-  if os.path.isfile('messages.json'):
-    with open('messages.json') as f:
+  if os.path.isfile('templates.json'):
+    with open('templates.json') as f:
       alerts = json.load(f)
   return alerts
 
