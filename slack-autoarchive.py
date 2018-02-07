@@ -165,6 +165,7 @@ def send_admin_report(channels):
       admin_msg = '[DRY RUN] %s' % admin_msg
     send_channel_message(ADMIN_CHANNEL, admin_msg)
 
+
 def decode(text):
   try:
     text = unicode(text, 'utf-8')
