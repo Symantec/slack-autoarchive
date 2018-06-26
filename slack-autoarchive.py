@@ -36,9 +36,8 @@ def get_whitelist_keywords():
 
   # remove whitespace characters like `\n` at the end of each line
   keywords = map(lambda x: x.strip(), keywords)
-
   if WHITELIST_KEYWORDS:
-    keywords.append(WHITELIST_KEYWORDS.split(','))
+    keywords = keywords + WHITELIST_KEYWORDS.split(',')
   return keywords
 
 
@@ -73,7 +72,10 @@ def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
       THROTTLE_REQUESTS -= 1
       time.sleep(1.0)
 
-    if response.status_code == requests.codes.ok and response.json()['ok']:
+    if response.status_code == requests.codes.ok and 'error' in response.json() and response.json()['error'] == 'not_authed':
+        print('Need to setup auth.')
+        sys.exit(1)
+    elif response.status_code == requests.codes.ok and response.json()['ok']:
       return response.json()
     elif retry and response.status_code == requests.codes.too_many_requests:
       THROTTLE_REQUESTS = 30
@@ -143,9 +145,10 @@ def is_channel_disused(channel, too_old_datetime):
 
 
 # If you add channels to the WHITELIST_KEYWORDS constant they will be exempt from archiving.
-def is_channel_whitelisted(channel, keywords):
-  for kw in keywords:
-    if kw in channel['name']:
+def is_channel_whitelisted(channel, white_listed_channels):
+  for white_listed_channel in white_listed_channels:
+    wl_channel_name = white_listed_channel.strip('#')
+    if wl_channel_name in channel['name']:
       return True
   return False
 
