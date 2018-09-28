@@ -3,6 +3,8 @@
 from datetime import timedelta, datetime
 import os
 import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 import sys
 import time
 import json
@@ -26,6 +28,26 @@ SKIP_SUBTYPES      = {'channel_leave', 'channel_join'}  # 'bot_message'
 
 THROTTLE_REQUESTS  = 0
 ERROR_RETRY = 0
+
+
+def requests_retry_session(
+    retries=10,
+    backoff_factor=0.3,
+    status_forcelist=(500, 502, 504),
+    session=None,
+):
+    session = session or requests.Session()
+    retry = Retry(
+        total=retries,
+        read=retries,
+        connect=retries,
+        backoff_factor=backoff_factor,
+        status_forcelist=status_forcelist,
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
 
 
 def get_whitelist_keywords():
@@ -60,9 +82,9 @@ def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
   payload['token'] = SLACK_TOKEN
   try:
     if method == "POST":
-      response = requests.post(uri, data=payload)
+      response = requests_retry_session().post(uri, data=payload, timeout=90)
     else:
-      response = requests.get(uri, params=payload)
+      response = requests_retry_session().get(uri, params=payload, timeout=90)
 
     # Force request to take at least 1 second. Slack docs state:
     # > In general we allow applications that integrate with Slack to send
