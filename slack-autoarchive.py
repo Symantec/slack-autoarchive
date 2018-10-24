@@ -52,14 +52,14 @@ def get_channel_alerts():
 
 
 # api_endpoint is a string, and payload is a dict
-def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
-  global THROTTLE_REQUESTS
-  global ERROR_RETRY
+def slack_api_http(api_endpoint=None, payload=None, method='GET', retry=True):
+  THROTTLE_REQUESTS = ''
+  ERROR_RETRY = ''
 
   uri = 'https://slack.com/api/' + api_endpoint
   payload['token'] = SLACK_TOKEN
   try:
-    if method == "POST":
+    if method == 'POST':
       response = requests.post(uri, data=payload)
     else:
       response = requests.get(uri, params=payload)
@@ -79,7 +79,7 @@ def slack_api_http(api_endpoint=None, payload=None, method="GET", retry=True):
       return response.json()
     elif retry and response.status_code == requests.codes.too_many_requests:
       THROTTLE_REQUESTS = 30
-      retry_timeout = 1.05 * float(response.headers['Retry-After'])
+      retry_timeout = float(response.headers['Retry-After'])
       print('Rate-limited. Retrying after ' + str(retry_timeout) + 'ms')
       return slack_api_http(api_endpoint, payload, method, False)
     else:
@@ -156,7 +156,7 @@ def is_channel_whitelisted(channel, white_listed_channels):
 def send_channel_message(channel_id, message):
   payload  = {'channel': channel_id, 'username': 'channel_reaper', 'icon_emoji': ':ghost:', 'text': message}
   api_endpoint = 'chat.postMessage'
-  slack_api_http(api_endpoint=api_endpoint, payload=payload, method="POST")
+  slack_api_http(api_endpoint=api_endpoint, payload=payload, method='POST')
 
 
 def write_log_entry(file_name, entry):
