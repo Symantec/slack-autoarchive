@@ -29,6 +29,8 @@ class ChannelReaper(object):
     self.too_old_datetime   = datetime.now() - timedelta(days=self.days_inactive)
     self.whitelist_keywords = os.getenv('WHITELIST_KEYWORDS')
     self.skip_subtypes      = {'channel_leave', 'channel_join'}  # 'bot_message'
+    # note, if the channel purpose has this string in it, we'll skip archiving this channel.
+    self.skip_channel_str   = os.getenv('SLACK_SKIP_PURPOSE', '%noarchive')
 
   def get_whitelist_keywords(self):
     keywords = []
@@ -44,7 +46,7 @@ class ChannelReaper(object):
 
   def get_channel_alerts(self):
     alerts = {
-      'channel_template': 'This channel has had no activity for %s days. It is being auto-archived. If you feel this is a mistake you can <https://slack.com/archives/archived|unarchive this channel> to bring it back at any point.'
+      'channel_template': 'This channel has had no activity for %s days. It is being auto-archived. If you feel this is a mistake you can <https://slack.com/archives/archived|unarchive this channel> to bring it back at any point. In the future, you can add "%noarchive" to your channel topic or purpose to avoid being archived. This script was run from this repo: https://github.com/Symantec/slack-autoarchive'
     }
     if os.path.isfile('templates.json'):
       with open('templates.json') as f:
@@ -130,6 +132,16 @@ class ChannelReaper(object):
 
   # If you add channels to the WHITELIST_KEYWORDS constant they will be exempt from archiving.
   def is_channel_whitelisted(self, channel, white_listed_channels):
+    # self.skip_channel_str
+    # if the channel purpose contains the string self.skip_channel_str, we'll skip it.
+    info_payload = {'channel': channel['id']}
+    channel_info = self.slack_api_http(api_endpoint='channels.info', payload=info_payload, method='GET')
+    channel_purpose = channel_info['channel']['purpose']['value']
+    channel_topic = channel_info['channel']['topic']['value']
+    if self.skip_channel_str in channel_purpose or self.skip_channel_str in channel_topic:
+        return True
+
+    # check the white listed channels (file / env)
     for white_listed_channel in white_listed_channels:
       wl_channel_name = white_listed_channel.strip('#')
       if wl_channel_name in channel['name']:

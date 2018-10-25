@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- python2.7/python3
+- python3
 - Install requirements.txt ( `pip install -r requirements.txt` )
 - Slack API token (https://api.slack.com/docs/oauth-test-tokens)
 
@@ -16,6 +16,10 @@ SLACK_TOKEN=<TOKEN> python slack-autoarchive.py
 # Run the script in active archive mode...THIS WILL ARCHIVE CHANNELS!
 DRY_RUN=false SLACK_TOKEN=<TOKEN> python slack-autoarchive.py
 ```
+
+## How can I exempt my channel from being archived?
+
+You can add the string '%noarchive' to your channel purpose or topic. (There is also a whitelist file or env variable if you prefer.)
 
 ## What Channels Will Be Archived
 
@@ -40,4 +44,4 @@ To provide a custom message, simply edit `messages.json`.
 
 ## Known Issues
 
-- When piping or redirecting Python 2 output, the interpreter defaults to 8-bit/ASCII output. This will cause a crash if your channel names have unicode characters. A workaround is to set this environment variable `PYTHONIOENCODING=UTF-8` prior to executing Python.
+- Since slack doesn't have a batch API, we have to hit the api a couple times for each channel. This makes the performance of this script slow. If you have thousands of channels (which some people do), get some coffee and be patient.
