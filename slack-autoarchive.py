@@ -1,6 +1,7 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python3.6
 
 from datetime import timedelta, datetime
+import logging
 import os
 import requests
 import sys
@@ -24,8 +25,7 @@ TOO_OLD_DATETIME   = datetime.now() - timedelta(days=DAYS_INACTIVE)
 WHITELIST_KEYWORDS = os.getenv('WHITELIST_KEYWORDS')
 SKIP_SUBTYPES      = {'channel_leave', 'channel_join'}  # 'bot_message'
 
-THROTTLE_REQUESTS  = 0
-ERROR_RETRY = 0
+logging.basicConfig(filename=AUDIT_LOG, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def get_whitelist_keywords():
@@ -52,47 +52,35 @@ def get_channel_alerts():
 
 
 # api_endpoint is a string, and payload is a dict
-def slack_api_http(api_endpoint=None, payload=None, method='GET', retry=True):
-  THROTTLE_REQUESTS = ''
-  ERROR_RETRY = ''
+def slack_api_http(api_endpoint=None, payload=None, method='GET', retry=True, retry_delay=0):
 
   uri = 'https://slack.com/api/' + api_endpoint
   payload['token'] = SLACK_TOKEN
   try:
+    # Force request to take at least 1 second. Slack docs state:
+    # > In general we allow applications that integrate with Slack to send
+    # > no more than one message per second. We allow bursts over that
+    # > limit for short periods.
+    if retry_delay > 0:
+      time.sleep(retry_delay)
+
     if method == 'POST':
       response = requests.post(uri, data=payload)
     else:
       response = requests.get(uri, params=payload)
 
-    # Force request to take at least 1 second. Slack docs state:
-    # > In general we allow applications that integrate with Slack to send
-    # > no more than one message per second. We allow bursts over that
-    # > limit for short periods.
-    if THROTTLE_REQUESTS > 0:
-      THROTTLE_REQUESTS -= 1
-      time.sleep(1.0)
-
     if response.status_code == requests.codes.ok and 'error' in response.json() and response.json()['error'] == 'not_authed':
-        print('Need to setup auth.')
-        sys.exit(1)
+      print('Need to setup auth. eg, SLACK_TOKEN=<secret token> python slack-autoarchive.py')
+      sys.exit(1)
     elif response.status_code == requests.codes.ok and response.json()['ok']:
       return response.json()
-    elif retry and response.status_code == requests.codes.too_many_requests:
-      THROTTLE_REQUESTS = 30
+    elif response.status_code == requests.codes.too_many_requests:
       retry_timeout = float(response.headers['Retry-After'])
-      print('Rate-limited. Retrying after ' + str(retry_timeout) + 'ms')
-      return slack_api_http(api_endpoint, payload, method, False)
+      return slack_api_http(api_endpoint, payload, method, False, retry_timeout)
     else:
-      print('API Error Response: ' + api_endpoint)
-      if ERROR_RETRY == 0:
-        ERROR_RETRY = 3
-      elif ERROR_RETRY == 1:
-        sys.exit(1)
-      else:
-        ERROR_RETRY -= 1
-      return slack_api_http(api_endpoint, payload, method, False)
-  except Exception as e:
-    raise Exception(e)
+      raise
+  except Exception as error_msg:
+    raise Exception(error_msg)
 
 
 # too_old_datetime is a datetime object
@@ -159,39 +147,26 @@ def send_channel_message(channel_id, message):
   slack_api_http(api_endpoint=api_endpoint, payload=payload, method='POST')
 
 
-def write_log_entry(file_name, entry):
-  with open(file_name, 'a') as logfile:
-    logfile.write(decode(entry) + '\n')
-
-
 def archive_channel(channel, alert):
   api_endpoint = 'channels.archive'
-  stdout_message = 'Archiving channel... %s' % decode(channel['name'])
+  stdout_message = 'Archiving channel... %s' % channel['name']
   print(stdout_message)
 
   if not DRY_RUN:
     channel_message = alert % DAYS_INACTIVE
     send_channel_message(channel['id'], channel_message)
     payload        = {'channel': channel['id']}
-    log_message    = str(datetime.now()) + ' ' + stdout_message
     slack_api_http(api_endpoint=api_endpoint, payload=payload)
-    write_log_entry(AUDIT_LOG, log_message)
+    logging.info(stdout_message)
 
 
 def send_admin_report(channels):
   if ADMIN_CHANNEL:
-    channel_names = ', '.join('#' + decode(channel['name']) for channel in channels)
+    channel_names = ', '.join('#' + channel['name'] for channel in channels)
     admin_msg = 'Archiving %d channels: %s' % (len(channels), channel_names)
     if DRY_RUN:
       admin_msg = '[DRY RUN] %s' % admin_msg
     send_channel_message(ADMIN_CHANNEL, admin_msg)
-
-
-def decode(text):
-  try:
-    text = unicode(text, 'utf-8')
-  except TypeError:
-    return text
 
 
 if DRY_RUN:
