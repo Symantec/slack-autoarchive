@@ -1,2 +1,2 @@
-requests==2.12.1
+requests
 flake8
