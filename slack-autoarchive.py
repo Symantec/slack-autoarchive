@@ -4,6 +4,8 @@ from datetime import timedelta, datetime
 import logging
 import os
 import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 import sys
 import time
 import json
@@ -56,6 +58,25 @@ class ChannelReaper(object):
   # api_endpoint is a string, and payload is a dict
   def slack_api_http(self, api_endpoint=None, payload=None, method='GET', retry=True, retry_delay=0):
 
+    def requests_retry_session(
+      retries=10,
+      backoff_factor=0.3,
+      status_forcelist=(500, 502, 504),
+      session=None
+    ):
+        session = session or requests.Session()
+        retry = Retry(
+            total=retries,
+            read=retries,
+            connect=retries,
+            backoff_factor=backoff_factor,
+            status_forcelist=status_forcelist,
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+        return session
+
     uri = 'https://slack.com/api/' + api_endpoint
     payload['token'] = self.slack_token
     try:
@@ -67,9 +88,9 @@ class ChannelReaper(object):
         time.sleep(retry_delay)
 
       if method == 'POST':
-        response = requests.post(uri, data=payload)
+        response = requests_retry_session().post(uri, data=payload, timeout=90)
       else:
-        response = requests.get(uri, params=payload)
+        response = requests_retry_session().get(uri, params=payload, timeout=90)
 
       if response.status_code == requests.codes.ok and 'error' in response.json() and response.json()['error'] == 'not_authed':
         print('Need to setup auth. eg, SLACK_TOKEN=<secret token> python slack-autoarchive.py')
