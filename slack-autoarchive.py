@@ -186,8 +186,7 @@ class ChannelReaper(object):
       sys.stdout.write('.')
       sys.stdout.flush()
 
-      if (not self.is_channel_whitelisted(channel, whitelist_keywords) and
-        self.is_channel_disused(channel, self.too_old_datetime)):
+      if (not self.is_channel_whitelisted(channel, whitelist_keywords) and self.is_channel_disused(channel, self.too_old_datetime)):
         archived_channels.append(channel)
         self.archive_channel(channel, alert_templates['channel_template'])
 
