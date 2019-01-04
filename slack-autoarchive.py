@@ -42,7 +42,7 @@ class ChannelReaper(object):
     keywords = map(lambda x: x.strip(), keywords)
     if self.whitelist_keywords:
       keywords = keywords + self.whitelist_keywords.split(',')
-    return keywords
+    return list(keywords)
 
   def get_channel_alerts(self):
     alerts = {
