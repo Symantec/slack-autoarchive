@@ -46,7 +46,7 @@ class ChannelReaper(object):
 
   def get_channel_alerts(self):
     alerts = {
-      'channel_template': 'This channel has had no activity for %s days. It is being auto-archived. If you feel this is a mistake you can <https://slack.com/archives/archived|unarchive this channel> to bring it back at any point. In the future, you can add "%noarchive" to your channel topic or purpose to avoid being archived. This script was run from this repo: https://github.com/Symantec/slack-autoarchive'
+      'channel_template': 'This channel has had no activity for %s days. It is being auto-archived. If you feel this is a mistake you can <https://get.slack.help/hc/en-us/articles/201563847-Archive-a-channel#unarchive-a-channel|unarchive this channel> to bring it back at any point. In the future, you can add "%noarchive" to your channel topic or purpose to avoid being archived. This script was run from this repo: https://github.com/Symantec/slack-autoarchive'
     }
     if os.path.isfile('templates.json'):
       with open('templates.json') as f:
