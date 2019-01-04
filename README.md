@@ -30,7 +30,7 @@ A channel will be archived by this script is it doesn't meet any of the followin
 
 ## What Happens When A Channel Is Archived By This Script
 
-- *Don't panic! It can be unarchived from https://slack.com/archives/archived* However all previous members would be kicked out of the channel and not be automatically invited back.
+- *Don't panic! It can be unarchived by following [these instructions](https://get.slack.help/hc/en-us/articles/201563847-Archive-a-channel#unarchive-a-channel) However all previous members would be kicked out of the channel and not be automatically invited back.
 - A message will be dropped into the channel saying the channel is being auto archived because of low activity
 - You can always whitelist a channel if it indeed needs to be kept despite meeting the auto-archive criteria.
 
@@ -38,7 +38,7 @@ A channel will be archived by this script is it doesn't meet any of the followin
 
 Just before a channel is archived, a message will be sent with information about the archive process. The default message is:
 
-  This channel has had no activity for %s days. It is being auto-archived. If you feel this is a mistake you can <https://slack.com/archives/archived|unarchive this channel> to bring it back at any point.'
+  This channel has had no activity for %s days. It is being auto-archived. If you feel this is a mistake you can <https://get.slack.help/hc/en-us/articles/201563847-Archive-a-channel#unarchive-a-channel|unarchive this channel> to bring it back at any point.'
 
 To provide a custom message, simply edit `messages.json`.
 
