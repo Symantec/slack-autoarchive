@@ -45,3 +45,16 @@ To provide a custom message, simply edit `messages.json`.
 ## Known Issues
 
 - Since slack doesn't have a batch API, we have to hit the api a couple times for each channel. This makes the performance of this script slow. If you have thousands of channels (which some people do), get some coffee and be patient.
+
+## Docker
+
+- First build the docker image (in the root of the project)
+ 
+`docker build --tag autoarchive .`
+- run the container (dryrun is set to true by default)
+ 
+`docker run -e SLACK_TOKEN=<YOUR_AWESOME_TOKEN> autoarchive`
+- if your ready to archive run
+
+`docker run -e SLACK_TOKEN=<YOUR_AWESOME_TOKEN> -e DRY_RUN=false autoarchive`
+
