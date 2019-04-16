@@ -4,7 +4,12 @@
 
 - python3
 - Install requirements.txt ( `pip install -r requirements.txt` )
-- Slack API token (https://api.slack.com/docs/oauth-test-tokens)
+- An [OAuth token](https://api.slack.com/docs/oauth) from a [Slack app](https://api.slack.com/slack-apps) on your workspace that has the following permission scopes:
+  - `channels:history`
+  - `channels:read`
+  - `channels:write`
+  - `chat:write:bot`
+  - `chat:write:user`
 
 ## Example Usages
 
