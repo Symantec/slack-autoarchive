@@ -1,0 +1,5 @@
+-r requirements.txt
+flake8
+pylint
+yapf
+pytest
