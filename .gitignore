@@ -1,3 +1,4 @@
 py36*
 audit.log
 whitelist.txt
+__pycache__

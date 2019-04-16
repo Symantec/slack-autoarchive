@@ -1,8 +1,10 @@
 language: python
 python:
-  - "2.7"
+  - "3.6"
 install:
   - pip install -r requirements-dev.txt
 # commands to run, must exit 0 to pass
-script: flake8
-script: yapf --parallel --verbose --recursive --diff .
+script:
+  - flake8
+  - yapf --parallel --verbose --recursive --diff .
+  - pylint --max-line-length=120 *.py
