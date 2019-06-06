@@ -45,7 +45,7 @@ Just before a channel is archived, a message will be sent with information about
 
   This channel has had no activity for %s days. It is being auto-archived. If you feel this is a mistake you can <https://get.slack.help/hc/en-us/articles/201563847-Archive-a-channel#unarchive-a-channel|unarchive this channel> to bring it back at any point.'
 
-To provide a custom message, simply edit `messages.json`.
+To provide a custom message, simply edit `templates.json`.
 
 ## Known Issues
 
@@ -54,12 +54,11 @@ To provide a custom message, simply edit `messages.json`.
 ## Docker
 
 - First build the docker image (in the root of the project)
- 
+
 `docker build --tag autoarchive .`
 - run the container (dryrun is set to true by default)
- 
+
 `docker run -e SLACK_TOKEN=<YOUR_AWESOME_TOKEN> autoarchive`
 - if your ready to archive run
 
 `docker run -e SLACK_TOKEN=<YOUR_AWESOME_TOKEN> -e DRY_RUN=false autoarchive`
-
