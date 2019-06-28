@@ -1,0 +1,31 @@
+version: 2.1
+jobs:
+  archive:
+    docker:
+      - image: python:2
+        environment:
+          DRY_RUN: "false"
+          DAYS_INACTIVE: "10"
+          WHITELIST_KEYWORDS: "pos-certifications,security,shared,all-hands,highfives,service-status,-office,trb-,sqd-,gld-,ask-a-coach,finance,hr,chatops,secops,wellbeing,lang-"
+    description: Archives channels on Slack that are older than 10 days
+    steps:
+      - checkout
+      - run:
+          name: Install requirements
+          command: "pip install -r requirements.txt"
+      - run:
+          name: Archiving channels
+          command: "python slack_autoarchive.py"
+workflows:
+  version: 2
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - archive:
+          context: slack-archive
