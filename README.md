@@ -16,10 +16,10 @@
 The `SLACK_TOKEN` must be exposed as a environment variable before running your script. By default, the script will do a `DRY_RUN`. To perform a non-dry run, specify `DRY_RUN=false` as an environment variable as well. See sample usages below.
 ```
 # Run the script in dry run archive mode...This will output a list of channels that will be archived.
-SLACK_TOKEN=<TOKEN> python slack-autoarchive.py
+SLACK_TOKEN=<TOKEN> python slack_autoarchive.py
 
 # Run the script in active archive mode...THIS WILL ARCHIVE CHANNELS!
-DRY_RUN=false SLACK_TOKEN=<TOKEN> python slack-autoarchive.py
+DRY_RUN=false SLACK_TOKEN=<TOKEN> python slack_autoarchive.py
 ```
 
 ## How can I exempt my channel from being archived?
