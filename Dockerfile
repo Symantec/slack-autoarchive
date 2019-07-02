@@ -11,4 +11,4 @@ ENV DRY_RUN=true
 
 CMD SLACK_TOKEN=${SLACK_TOKEN} \
   DRY_RUN=${DRY_RUN} \
-  python slack-autoarchive.py
+  python slack_autoarchive.py

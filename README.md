@@ -16,10 +16,10 @@
 The `SLACK_TOKEN` must be exposed as a environment variable before running your script. By default, the script will do a `DRY_RUN`. To perform a non-dry run, specify `DRY_RUN=false` as an environment variable as well. See sample usages below.
 ```
 # Run the script in dry run archive mode...This will output a list of channels that will be archived.
-SLACK_TOKEN=<TOKEN> python slack-autoarchive.py
+SLACK_TOKEN=<TOKEN> python slack_autoarchive.py
 
 # Run the script in active archive mode...THIS WILL ARCHIVE CHANNELS!
-DRY_RUN=false SLACK_TOKEN=<TOKEN> python slack-autoarchive.py
+DRY_RUN=false SLACK_TOKEN=<TOKEN> python slack_autoarchive.py
 ```
 
 ## How can I exempt my channel from being archived?
@@ -45,7 +45,7 @@ Just before a channel is archived, a message will be sent with information about
 
   This channel has had no activity for %s days. It is being auto-archived. If you feel this is a mistake you can <https://get.slack.help/hc/en-us/articles/201563847-Archive-a-channel#unarchive-a-channel|unarchive this channel> to bring it back at any point.'
 
-To provide a custom message, simply edit `messages.json`.
+To provide a custom message, simply edit `templates.json`.
 
 ## Known Issues
 
@@ -54,12 +54,11 @@ To provide a custom message, simply edit `messages.json`.
 ## Docker
 
 - First build the docker image (in the root of the project)
- 
+
 `docker build --tag autoarchive .`
 - run the container (dryrun is set to true by default)
- 
+
 `docker run -e SLACK_TOKEN=<YOUR_AWESOME_TOKEN> autoarchive`
 - if your ready to archive run
 
 `docker run -e SLACK_TOKEN=<YOUR_AWESOME_TOKEN> -e DRY_RUN=false autoarchive`
-
