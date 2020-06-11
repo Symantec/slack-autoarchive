@@ -103,7 +103,7 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
     def get_all_channels(self):
         """ Get a list of all non-archived channels from slack channels.list. """
         payload = {'exclude_archived': 1}
-        api_endpoint = 'channels.list'
+        api_endpoint = 'conversations.list'
         channels = self.slack_api_http(api_endpoint=api_endpoint,
                                        payload=payload)['channels']
         all_channels = []
@@ -143,8 +143,8 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
     def is_channel_disused(self, channel, too_old_datetime):
         """ Return True or False depending on if a channel is "active" or not.  """
         num_members = channel['num_members']
-        payload = {'inclusive': 0, 'oldest': 0, 'count': 50}
-        api_endpoint = 'channels.history'
+        payload = {'inclusive': 0, 'oldest': 0, 'limit': 50}
+        api_endpoint = 'conversations.history'
 
         payload['channel'] = channel['id']
         channel_history = self.slack_api_http(api_endpoint=api_endpoint,
@@ -165,7 +165,7 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
         # self.settings.get('skip_channel_str')
         # if the channel purpose contains the string self.settings.get('skip_channel_str'), we'll skip it.
         info_payload = {'channel': channel['id']}
-        channel_info = self.slack_api_http(api_endpoint='channels.info',
+        channel_info = self.slack_api_http(api_endpoint='conversations.info',
                                            payload=info_payload,
                                            method='GET')
         channel_purpose = channel_info['channel']['purpose']['value']
@@ -197,7 +197,7 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
 
     def archive_channel(self, channel, alert):
         """ Archive a channel, and send alert to slack admins. """
-        api_endpoint = 'channels.archive'
+        api_endpoint = 'conversations.archive'
         stdout_message = 'Archiving channel... %s' % channel['name']
         self.logger.info(stdout_message)
 
