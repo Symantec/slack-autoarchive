@@ -102,18 +102,28 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
 
     def get_all_channels(self):
         """ Get a list of all non-archived channels from slack channels.list. """
-        payload = {'exclude_archived': 1}
-        api_endpoint = 'channels.list'
-        channels = self.slack_api_http(api_endpoint=api_endpoint,
-                                       payload=payload)['channels']
         all_channels = []
-        for channel in channels:
-            all_channels.append({
-                'id': channel['id'],
-                'name': channel['name'],
-                'created': channel['created'],
-                'num_members': channel['num_members']
-            })
+        payload = {'exclude_archived': 1, 'limit': 200}
+        api_endpoint = 'channels.list'
+
+
+        while True:
+            response = self.slack_api_http(api_endpoint=api_endpoint,
+                                        payload=payload)
+            
+            channels = response['channels']
+
+            for channel in channels:
+                all_channels.append({
+                    'id': channel['id'],
+                    'name': channel['name'],
+                    'created': channel['created'],
+                    'num_members': channel['num_members']
+                })
+            
+            if 'response_metadata' not in response or not response['response_metadata']['next_cursor']:
+                break
+            payload['cursor'] = response['response_metadata']['next_cursor']
         return all_channels
 
     def get_last_message_timestamp(self, channel_history, too_old_datetime):
