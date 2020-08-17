@@ -3,9 +3,12 @@
 import logging
 
 
-def get_logger(logger_name, logger_file, log_level=logging.INFO):
+def get_logger(
+    logger_name,
+    logger_file,
+    log_level=logging.INFO,
+    log_format = '%(asctime)s - %(levelname)s - %(message)s'):
     """ Setup the logger and return it. """
-    log_format = '%(asctime)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=log_level,
                         format=log_format,
                         datefmt='%y-%m-%d_%H:%M',

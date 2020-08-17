@@ -23,7 +23,10 @@ class ChannelReaper():
 
     def __init__(self):
         self.settings = get_channel_reaper_settings()
-        self.logger = get_logger('channel_reaper', './audit.log')
+        self.logger = get_logger(
+            'channel_reaper',
+            logger_file=self.settings.get('logger_file'),
+            log_format=self.settings.get('log_format'))
 
     def get_whitelist_keywords(self):
         """
@@ -114,7 +117,7 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
                 'created': channel['created'],
                 'num_members': channel['num_members']
             })
-        return all_channels
+        return sorted(all_channels, key=lambda k: k['name'])
 
     def get_last_message_timestamp(self, channel_history, too_old_datetime):
         """ Get the last message from a slack channel, and return the time. """
