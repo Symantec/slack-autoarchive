@@ -59,6 +59,6 @@ To provide a custom message, simply edit `templates.json`.
 - run the container (dryrun is set to true by default)
 
 `docker run -e SLACK_TOKEN=<YOUR_AWESOME_TOKEN> autoarchive`
-- if your ready to archive run
+- when you're ready to archive, run
 
 `docker run -e SLACK_TOKEN=<YOUR_AWESOME_TOKEN> -e DRY_RUN=false autoarchive`
