@@ -7,9 +7,11 @@
 - An [OAuth token](https://api.slack.com/docs/oauth) from a [Slack app](https://api.slack.com/slack-apps) on your workspace that has the following permission scopes:
   - `channels:history`
   - `channels:read`
-  - `channels:write`
-  - `chat:write:bot`
-  - `chat:write:user`
+  - `channels:manage`
+  - `channels:join`
+  - `chat:write`
+  - `chat:write.customize`
+  - `chat:write.public`
 
 ## Example Usages
 
