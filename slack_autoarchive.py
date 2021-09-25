@@ -122,18 +122,34 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
 
     def get_all_channels(self):
         """ Get a list of all non-archived channels from slack channels.list. """
-        payload = {'exclude_archived': 1}
+        payload = {'exclude_archived':1, 'limit':100}
         api_endpoint = 'conversations.list'
-        channels = self.slack_api_http(api_endpoint=api_endpoint,
-                                       payload=payload)['channels']
+        
+        flag_first_page = True
+        flag_last_page = False
+        next_cursor = ''
         all_channels = []
-        for channel in channels:
-            all_channels.append({
-                'id': channel['id'],
-                'name': channel['name'],
-                'created': channel['created'],
-                'num_members': channel['num_members']
-            })
+        while not flag_last_page:
+            if not flag_first_page:
+                payload['cursor']  = next_cursor
+            api_response = self.slack_api_http(api_endpoint=api_endpoint, payload=payload)
+            if flag_first_page:
+                flag_first_page = False
+            
+            channels = api_response['channels']
+            self.logger.info('%s channel(s) retrieved' % str(len(channels)))
+            for channel in channels:
+                all_channels.append({
+                    'id': channel['id'],
+                    'name': channel['name'],
+                    'created': channel['created'],
+                    'num_members': channel['num_members']
+                })
+                
+            next_cursor = api_response['response_metadata'].get('next_cursor')            
+            if not next_cursor:
+                flag_last_page = True
+
         return all_channels
 
     def get_last_message_timestamp(self, channel_history, too_old_datetime):
