@@ -42,6 +42,19 @@ class ChannelReaper():
             keywords = keywords + whitelist_keywords.split(',')
         return list(keywords)
 
+    def get_blacklist_channels(self):
+        """
+        Channels in blacklist.txt would be archived regardless of its state
+        """
+        keywords = []
+        if os.path.isfile('blacklist.txt'):
+            with open('blacklist.txt') as filecontent:
+                keywords = filecontent.readlines()
+
+        # remove whitespace characters like `\n` at the end of each line
+        keywords = map(lambda x: x.strip(), keywords)
+        return list(keywords)
+
     def get_channel_alerts(self):
         """Get the alert message which is used to notify users in a channel of archival. """
         archive_msg = """
@@ -95,7 +108,7 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
                     )
                     self.join_channel(payload['channel'])
                     return response.json()
-                else:            
+                else:
                     self.logger.error(
                         response.json()['error']
                     )
@@ -124,7 +137,7 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
         """ Get a list of all non-archived channels from slack channels.list. """
         payload = {'exclude_archived':1, 'limit':100}
         api_endpoint = 'conversations.list'
-        
+
         flag_first_page = True
         flag_last_page = False
         next_cursor = ''
@@ -135,7 +148,7 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
             api_response = self.slack_api_http(api_endpoint=api_endpoint, payload=payload)
             if flag_first_page:
                 flag_first_page = False
-            
+
             channels = api_response['channels']
             self.logger.info('%s channel(s) retrieved' % str(len(channels)))
             for channel in channels:
@@ -145,8 +158,8 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
                     'created': channel['created'],
                     'num_members': channel['num_members']
                 })
-                
-            next_cursor = api_response['response_metadata'].get('next_cursor')            
+
+            next_cursor = api_response['response_metadata'].get('next_cursor')
             if not next_cursor:
                 flag_last_page = True
 
@@ -218,6 +231,12 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
                 return True
         return False
 
+    def is_channel_blacklisted(self, channel, black_listed_channels):
+        """ Return True of False depending on whether the channel is on the provided list. """
+        return any(channel == item for item in black_listed_channels)
+
+
+
     def send_channel_message(self, channel_id, message):
         """ Send a message to a channel or user. """
         payload = {
@@ -265,6 +284,7 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
                 'THIS IS A DRY RUN. NO CHANNELS ARE ACTUALLY ARCHIVED.')
 
         whitelist_keywords = self.get_whitelist_keywords()
+        blacklist_channels = self.get_blacklist_channels()
         alert_templates = self.get_channel_alerts()
         archived_channels = []
 
@@ -272,11 +292,13 @@ This script was run from this repo: https://github.com/Symantec/slack-autoarchiv
             sys.stdout.write('.')
             sys.stdout.flush()
 
+            channel_blacklisted = self.is_channel_blacklisted(
+                channel, blacklist_channels)
             channel_whitelisted = self.is_channel_whitelisted(
                 channel, whitelist_keywords)
             channel_disused = self.is_channel_disused(
                 channel, self.settings.get('too_old_datetime'))
-            if (not channel_whitelisted and channel_disused):
+            if (channel_blacklisted or (not channel_whitelisted and channel_disused)):
                 archived_channels.append(channel)
                 self.archive_channel(channel,
                                      alert_templates['channel_template'])
